@@ -1,13 +1,159 @@
 import { NavLink, useLocation, Link } from "react-router";
-import { SidebarLink } from "../../Utils/Sideber/SidebarLink.jsx";
-import { RiLogoutBoxLine } from "react-icons/ri";
+import {
+  BiCategory,
+} from "react-icons/bi";
+import { CiCircleQuestion } from "react-icons/ci";
+import { FaRegUserCircle } from "react-icons/fa";
+import { FaListUl } from "react-icons/fa6";
+import { GoChecklist } from "react-icons/go";
+import {
+  LuChartNoAxesCombined,
+  LuClipboardList,
+  LuCrown,
+} from "react-icons/lu";
+import { PiMapPinArea } from "react-icons/pi";
+import {
+  RiCoupon4Line,
+  RiDashboard2Line,
+  RiUserSettingsLine,
+  RiLogoutBoxLine,
+} from "react-icons/ri";
+import { TbMessageQuestion } from "react-icons/tb";
+import { useGetUserProfileQuery } from "../../redux/api/profileApi";
 
 const Sidebar = ({ collapsed, isMobile, onClose }) => {
+  const { data: userProfileData } = useGetUserProfileQuery();
   const location = useLocation();
+
+  const user = userProfileData?.data;
+
+  const SidebarLink = [
+    {
+      path: "/",
+      label: "Dashboard",
+      icon: <RiDashboard2Line size={24} />,
+    },
+    {
+      path: "/user-management",
+      label: "User",
+      icon: <FaRegUserCircle size={24} />,
+      permission: "USER",
+    },
+    {
+      path: "/listing-management",
+      label: "Listings",
+      icon: <LuClipboardList size={24} />,
+      permission: "LISTING",
+    },
+    {
+      path: "/subscription",
+      label: "Subscription",
+      icon: <LuCrown size={24} />,
+      permission: "SUBSCRIPTION",
+    },
+    {
+      path: "/all-subscriber",
+      label: "All Subscriber",
+      icon: <FaListUl size={24} />,
+      permission: "SUBSCRIBER_LIST",
+    },
+    {
+      path: "/earnings-management",
+      label: "Earnings",
+      icon: <LuChartNoAxesCombined size={24} />,
+      permission: "EARNING",
+    },
+    {
+      path: "/NDA",
+      label: "NDA",
+      icon: <PiMapPinArea size={24} />,
+      permission: "NDA",
+    },
+    {
+      path: "/coupon",
+      label: "Coupon",
+      icon: <RiCoupon4Line size={24} />,
+      permission: "COUPON",
+    },
+    {
+      path: "/formation",
+      label: "Blog",
+      icon: <BiCategory size={24} />,
+      permission: "BLOG",
+    },
+    {
+      path: "/categories",
+      label: "Manage Category",
+      icon: <BiCategory size={24} />,
+      permission: "CATEGORY",
+    },
+    {
+      path: "/admin",
+      label: "Admin Panel",
+      icon: <BiCategory size={24} />,
+      roleOnly: "SUPER_ADMIN",
+    },
+    {
+      path: "/profile",
+      label: "Profile Setting",
+      icon: <RiUserSettingsLine size={24} />,
+    },
+    {
+      path: "/faq-management",
+      label: "FAQ",
+      icon: <TbMessageQuestion size={24} />,
+      hideForAdmin: true,
+    },
+    {
+      path: "/privacy-policy",
+      label: "Privacy Policy",
+      icon: <GoChecklist size={24} />,
+      hideForAdmin: true,
+    },
+    {
+      path: "/terms-condition",
+      label: "Terms & Condition",
+      icon: <CiCircleQuestion size={24} />,
+      hideForAdmin: true,
+    },
+    {
+      path: "/refund-policy",
+      label: "Refund Policy",
+      icon: <CiCircleQuestion size={24} />,
+      hideForAdmin: true,
+    },
+  ];
+
+  // ✅ FILTER LOGIC
+  const filteredSidebar = SidebarLink.filter((item) => {
+    if (!user) return false;
+
+    // 👑 SUPER_ADMIN → সব দেখাবে
+    if (user.role === "SUPER_ADMIN") return true;
+
+    // 🧑 ADMIN
+    if (user.role === "ADMIN") {
+      // hide special pages
+      if (item.hideForAdmin) return false;
+
+      // roleOnly route hide
+      if (item.roleOnly) return false;
+
+      // permission check
+      if (item.permission) {
+        return user.permissions?.includes(item.permission);
+      }
+
+      // default show (dashboard, profile)
+      return true;
+    }
+
+    return false;
+  });
 
   return (
     <div className="h-full px-2 pt-4 pb-6 flex flex-col gap-3">
-      {SidebarLink.map((item) => (
+      {filteredSidebar.map((item) => (
         <NavLink
           key={item.path}
           to={item.path}

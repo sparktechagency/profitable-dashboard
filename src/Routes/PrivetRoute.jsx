@@ -1,34 +1,37 @@
 import React from "react";
-import { jwtDecode } from "jwt-decode";
-import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useGetUserProfileQuery } from "../redux/api/profileApi";
 
+const routePermissionMap = {
+    "/user-management": "USER",
+  "/listing-management": "LISTING",
+  "/subscription": "SUBSCRIPTION",
+  "/all-subscriber": "SUBSCRIBER_LIST",
+  "/earnings-management": "EARNING",
+  "/NDA": "NDA",
+  "/coupon": "COUPON",
+  "/formation": "BLOG",
+  "/categories": "CATEGORY",
+
+  // ❌ ADMIN cannot access these
+  "/faq-management": "SUPER_ADMIN_ONLY",
+  "/privacy-policy": "SUPER_ADMIN_ONLY",
+  "/terms-condition": "SUPER_ADMIN_ONLY",
+  "/refund-policy": "SUPER_ADMIN_ONLY",
+};
 const PrivateRoute = ({ children }) => {
   const token = useSelector((state) => state.auth?.token);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const location = useLocation();
 
-  useEffect(() => {
-    console.log("token from private route", token);
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        console.log(decoded);
-        if (decoded.role === "Admin") {
-          setIsAuthorized(true);
-        } else {
-          setIsAuthorized(false);
-        }
-      } catch (error) {
-        console.error("Invalid token", error);
-        setIsAuthorized(false);
-      }
-    } else {
-      setIsAuthorized(false);
-    }
-    setIsLoading(false);
-  }, [token]);
+  const { data: userProfileData, isLoading } = useGetUserProfileQuery(
+    undefined,
+    { skip: !token }
+  );
+
+  if (!token) {
+    return <Navigate to="/login" />;
+  }
 
   if (isLoading) {
     return (
@@ -38,7 +41,37 @@ const PrivateRoute = ({ children }) => {
     );
   }
 
-  return isAuthorized ? children : <Navigate to="/login" />;
+  const user = userProfileData?.data;
+  if (!user) return <Navigate to="/login" />;
+
+  const requiredPermission = routePermissionMap[location.pathname];
+
+
+  if (user.role === "SUPER_ADMIN") {
+    return children;
+  }
+
+
+  if (user.role === "ADMIN") {
+
+    if (requiredPermission === "SUPER_ADMIN_ONLY") {
+      return <Navigate to="/no-access" />;
+    }
+
+
+    if (!requiredPermission) {
+      return children;
+    }
+
+    // permission check
+    if (user.permissions?.includes(requiredPermission)) {
+      return children;
+    }
+
+    return <Navigate to="/no-access" />;
+  }
+
+  return <Navigate to="/login" />;
 };
 
 export default PrivateRoute;

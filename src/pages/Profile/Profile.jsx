@@ -18,10 +18,8 @@ export default function Profile() {
   const [profilePic, setProfilePic] = useState();
   const token = useSelector((state) => state.auth.token);
   const decodedToken = decodeAuthToken(token);
-  const { data: userProfileData } = useGetUserProfileQuery({
-    userId: decodedToken?.userId,
-  });
-
+  const { data: userProfileData } = useGetUserProfileQuery();
+console.log(userProfileData)
   const [updateProfile] = useUpdateProfileMutation();
 
   useEffect(() => {

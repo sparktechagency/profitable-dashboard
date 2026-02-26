@@ -9,6 +9,7 @@ export const ENUM_ADMIN_PERMISSION = {
   EARNING: "EARNING",
   CATEGORY: "CATEGORY",
   SUBSCRIPTION: "SUBSCRIPTION",
+  SUBSCRIBER_LIST: "SUBSCRIBER_LIST",
   COUPON: "COUPON",
   BLOG: "BLOG",
   NDA: "NDA",
@@ -27,15 +28,15 @@ const AddAdmin = ({ openAddModal, setOpenAddModal, setUsers }) => {
 
   // Map accessOptions to display labels
   const accessOptions = [
-    { label: "User Access", value: ENUM_ADMIN_PERMISSION.USER },
-    { label: "Listing Access", value: ENUM_ADMIN_PERMISSION.LISTING },
-    { label: "Subscription Access", value: ENUM_ADMIN_PERMISSION.SUBSCRIPTION },
-    { label: "All Subscriber Access", value: ENUM_ADMIN_PERMISSION.SUBSCRIPTION },
-    { label: "Earning Access", value: ENUM_ADMIN_PERMISSION.EARNING },
-    { label: "NDA Access", value: ENUM_ADMIN_PERMISSION.NDA },
-    { label: "Coupon Access", value: ENUM_ADMIN_PERMISSION.COUPON },
-    { label: "Blog Access", value: ENUM_ADMIN_PERMISSION.BLOG },
-    { label: "Manage Category Access", value: ENUM_ADMIN_PERMISSION.CATEGORY },
+    { label: "User Access", value: ENUM_ADMIN_PERMISSION.USER },//
+    { label: "Listing Access", value: ENUM_ADMIN_PERMISSION.LISTING },//
+    { label: "Subscription Access", value: ENUM_ADMIN_PERMISSION.SUBSCRIPTION },//
+    { label: "All Subscriber Access", value: ENUM_ADMIN_PERMISSION.SUBSCRIBER_LIST },//
+    { label: "Earning Access", value: ENUM_ADMIN_PERMISSION.EARNING },//
+    { label: "NDA Access", value: ENUM_ADMIN_PERMISSION.NDA },//
+    { label: "Coupon Access", value: ENUM_ADMIN_PERMISSION.COUPON },//
+    { label: "Blog Access", value: ENUM_ADMIN_PERMISSION.BLOG },//
+    { label: "Manage Category Access", value: ENUM_ADMIN_PERMISSION.CATEGORY },//
   ];
 
   const handleCancel = () => setOpenAddModal(false);
@@ -59,29 +60,16 @@ const AddAdmin = ({ openAddModal, setOpenAddModal, setUsers }) => {
         permissions,
       };
 
-      await addAdmin(payload).unwrap();
+      const res = await addAdmin(payload).unwrap();
 
-      // Optionally update local UI
-      setUsers((prev) => [
-        ...prev,
-        {
-          key: prev.length + 1,
-          sl: prev.length + 1,
-          name: values.name,
-          email: values.email,
-          image: `https://i.pravatar.cc/100?img=${prev.length + 4}`,
-          role: roleEnum,
-          status: "active",
-          access: permissions, // just for table display
-        },
-      ]);
+    
 
-      message.success("Admin added successfully!");
+      message.success(res?.message);
       form.resetFields();
       setRole("");
       setOpenAddModal(false);
     } catch (error) {
-      message.error("Failed to add admin!");
+      message.error(error?.data?.message);
     } finally {
       setLoading(false);
     }

@@ -36,18 +36,23 @@ const Login = () => {
       console.log("response", response);
       console.log("response from login", response?.data?.accessToken);
       if (response?.data?.accessToken) {
+        const { accessToken, user } = response.data;
+
         dispatch(
           setUser({
-            user: response?.data?.user || {},
-            token: response?.data?.accessToken,
-          })
+            user: user || {},
+            token: accessToken,
+          }),
         );
-        Swal.fire({
+
+        await Swal.fire({
           icon: "success",
           title: "Login successful!",
-          text: "You are now logged in.",
+          timer: 1200,
+          showConfirmButton: false,
         });
-        navigate("/");
+
+        window.location.href = "/";
       }
     } catch (error) {
       console.log(error);

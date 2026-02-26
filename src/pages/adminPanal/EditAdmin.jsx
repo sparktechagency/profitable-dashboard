@@ -1,24 +1,37 @@
 // EditAdmin.jsx
 import React, { useEffect, useState } from "react";
 import { Modal, Form, Input, Checkbox, Select, message, Spin } from "antd";
+import { useUpdateAdminMutation } from "../../redux/api/adminPanalApi";
+export const ENUM_ADMIN_PERMISSION = {
+  USER: "USER",
+  LISTING: "LISTING",
+  EARNING: "EARNING",
+  CATEGORY: "CATEGORY",
+  SUBSCRIPTION: "SUBSCRIPTION",
+  SUBSCRIBER_LIST: "SUBSCRIBER_LIST",
+  COUPON: "COUPON",
+  BLOG: "BLOG",
+  NDA: "NDA",
+};
 
-const accessOptions = [
-  "User Access",
-  "Listing Access",
-  "Subscription Access",
-  "All Subscriber Access",
-  "Earning Access",
-  "NDA Access",
-  "Coupon Access",
-  "Blog Access",
-  "Manage Category Access",
-];
+export const ENUM_ADMIN_ROLE = {
+  SUPER_ADMIN: "SUPER_ADMIN",
+  ADMIN: "ADMIN",
+};
 
 const { Option } = Select;
 
-const EditAdmin = ({ openEditModal, setOpenEditModal, selectedUser, setUsers }) => {
+const permissionOptions = Object.values(ENUM_ADMIN_PERMISSION);
+
+const EditAdmin = ({
+  openEditModal,
+  setOpenEditModal,
+  selectedUser,
+}) => {
+  const [updateAdmin] = useUpdateAdminMutation();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(null);
 
   useEffect(() => {
     if (selectedUser) {
@@ -26,25 +39,47 @@ const EditAdmin = ({ openEditModal, setOpenEditModal, selectedUser, setUsers }) 
         name: selectedUser.name,
         email: selectedUser.email,
         role: selectedUser.role,
-        access: selectedUser.access,
+        permissions:
+          selectedUser.role === ENUM_ADMIN_ROLE.ADMIN
+            ? selectedUser.access
+            : [],
       });
+
+      setSelectedRole(selectedUser.role);
     }
   }, [selectedUser, form]);
 
-  const handleCancel = () => setOpenEditModal(false);
+  const handleCancel = () => {
+    setOpenEditModal(false);
+    form.resetFields();
+  };
 
-  const handleSubmit = (values) => {
-    setLoading(true);
-    setTimeout(() => {
-      setUsers((prev) =>
-        prev.map((user) =>
-          user.key === selectedUser.key ? { ...user, ...values } : user
-        )
-      );
+  const handleSubmit = async (values) => {
+    try {
+      setLoading(true);
+
+      const body = {
+        name: values.name,
+        role: values.role,
+      };
+
+    
+      if (values.role === ENUM_ADMIN_ROLE.ADMIN) {
+        body.permissions = values.permissions || [];
+      }
+
+      await updateAdmin({
+        id: selectedUser.id,
+        data:body,
+      }).unwrap();
+
       message.success("Admin updated successfully!");
-      setLoading(false);
       setOpenEditModal(false);
-    }, 1000);
+    } catch (error) {
+      message.error("Failed to update admin");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -56,46 +91,74 @@ const EditAdmin = ({ openEditModal, setOpenEditModal, selectedUser, setUsers }) 
       width={600}
       title={`Edit Admin - ${selectedUser?.name}`}
     >
-      <Form form={form} layout="vertical" onFinish={handleSubmit} className="px-2">
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+        className="px-2"
+      >
+        {/* Name */}
         <Form.Item
           label="Name"
           name="name"
           rules={[{ required: true, message: "Please input name!" }]}
         >
-          <Input placeholder="Enter name" style={{ height: "40px" }} />
+          <Input style={{ height: "40px" }} />
         </Form.Item>
 
+        {/* Email */}
         <Form.Item label="Email" name="email">
-          <Input disabled style={{ height: "40px", backgroundColor: "#f5f5f5" }} />
+          <Input disabled style={{ height: "40px" }} />
         </Form.Item>
 
+        {/* Role */}
         <Form.Item
           label="Role"
           name="role"
           rules={[{ required: true, message: "Please select role!" }]}
         >
-          <Select placeholder="Select role" style={{ width: "100%", height: "40px" }}>
-            <Option value="Admin">Admin</Option>
-            <Option value="Super Admin">Super Admin</Option>
+          <Select
+            style={{ height: "40px" }}
+            onChange={(value) => {
+              setSelectedRole(value);
+
+              if (value === ENUM_ADMIN_ROLE.SUPER_ADMIN) {
+                form.setFieldsValue({ permissions: [] });
+              }
+            }}
+          >
+            <Option value={ENUM_ADMIN_ROLE.ADMIN}>
+              ADMIN
+            </Option>
+            <Option value={ENUM_ADMIN_ROLE.SUPER_ADMIN}>
+              SUPER_ADMIN
+            </Option>
           </Select>
         </Form.Item>
 
-        <Form.Item label="Access Permissions" name="access">
-          <Checkbox.Group options={accessOptions} />
+        {/* Permissions */}
+        <Form.Item label="Permissions" name="permissions">
+          <Checkbox.Group
+            options={permissionOptions}
+            disabled={selectedRole === ENUM_ADMIN_ROLE.SUPER_ADMIN}
+          />
         </Form.Item>
 
+        {/* Submit Button */}
         <Form.Item>
           <button
-            className={`w-full py-3 rounded text-white flex justify-center items-center gap-2 transition-all duration-300 ${
-              loading ? "bg-[#fa8e97] cursor-not-allowed" : "bg-[#E63946] hover:bg-[#941822]"
-            }`}
             type="submit"
             disabled={loading}
+            className={`w-full py-3 rounded text-white flex justify-center items-center gap-2 ${
+              loading
+                ? "bg-[#fa8e97] cursor-not-allowed"
+                : "bg-[#E63946] hover:bg-[#941822]"
+            }`}
           >
             {loading ? (
               <>
                 <Spin size="small" />
-                <span>Submitting...</span>
+                <span>Updating...</span>
               </>
             ) : (
               "Update"

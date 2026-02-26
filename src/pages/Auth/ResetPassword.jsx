@@ -42,8 +42,8 @@ const ResetPassword = () => {
     try {
       await resetPassword({
         email,
-        confirm_password: confirmPassword,
-        password: newPassword,
+        confirmPassword: confirmPassword,
+        newPassword: newPassword,
       }).unwrap();
 
       Swal.fire({

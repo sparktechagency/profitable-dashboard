@@ -27,6 +27,7 @@ import SubcategoryManagement from "../pages/Categories/SubcategoryManagement";
 import PrivateRoute from "./PrivetRoute";
 import RefundPolicy from "../pages/refundPolicy/RefundPolicy";
 import Admin from "../pages/adminPanal/Admin";
+import NoAccess from "./NoAccess";
 
 export const Routes = createBrowserRouter([
   {
@@ -64,6 +65,10 @@ export const Routes = createBrowserRouter([
       {
         path: "/all-subscriber",
         element: <AllSubscriber />,
+      },
+        {
+        path: "/no-access",
+        element: <NoAccess />,
       },
       {
         path: "/earnings-management",

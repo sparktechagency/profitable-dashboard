@@ -83,7 +83,7 @@ function ChangePassword() {
       if (response?.success) {
         message.success("Password updated successfully!");
         setFormValues({
-          email: email, // Keep email
+          email: email, 
           currentPassword: "",
           newPassword: "",
           confirmPassword: "",

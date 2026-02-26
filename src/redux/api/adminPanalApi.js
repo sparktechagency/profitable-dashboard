@@ -2,13 +2,12 @@ import { baseApi } from "./baseApi";
 
 const admin = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllFaq: builder.query({
-      query: (params) => ({
-        url: "faq/get-all-faq",
+    getAllAdmin: builder.query({
+      query: () => ({
+        url: "admin/get-all-admin",
         method: "GET",
-        params,
       }),
-      providesTags: ["faq"],
+      providesTags: ["admin"],
     }),
     deleteFaq: builder.mutation({
       query: ({ _id }) => ({
@@ -18,6 +17,24 @@ const admin = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["faq"],
     }),
+
+     deleteAdmin: builder.mutation({
+      query: ({ id }) => ({
+        url: `admin/delete-admin/${id}`,
+        method: "DELETE",
+     
+      }),
+      invalidatesTags: ["admin"],
+    }),
+
+    blockUser: builder.mutation({
+      query: (id) => ({
+        url: `admin/block-admin/${id}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["admin"],
+    }),
+
     createAdmin: builder.mutation({
       query: (data) => ({
         url: "/admin/create-new-admin",
@@ -26,26 +43,26 @@ const admin = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["admin"],
     }),
-    updateFaq: builder.mutation({
-      query: ({ _id, data }) => {
-        // console.log("Updating FAQ:", { _id, data });
+    updateAdmin: builder.mutation({
+      query: ({ data, id }) => {
         return {
-          url: `faq/update-faq`,
+          url: `admin/edit-admin/${id}`,
           method: "PATCH",
-          params: { faqId: _id },
           body: data,
         };
       },
-      invalidatesTags: ["faq"],
+      invalidatesTags: ["admin"],
     }),
   }),
 });
 
 export const {
-  useGetAllFaqQuery,
+  useGetAllAdminQuery,
   useCreateAdminMutation,
   useDeleteFaqMutation,
-  useUpdateFaqMutation,
+  useUpdateAdminMutation,
+  useBlockUserMutation,
+  useDeleteAdminMutation
 } = admin;
 
 export default admin;
