@@ -145,7 +145,7 @@ const AddAdmin = ({ openAddModal, setOpenAddModal, setUsers }) => {
         <Form.Item>
           <button
             className={`w-full py-3 rounded text-white flex justify-center items-center gap-2 transition-all duration-300 ${
-              loading ? "bg-[#fa8e97] cursor-not-allowed" : "bg-[#E63946] hover:bg-[#941822]"
+              loading ? "bg-[#3872F0] cursor-not-allowed" : "bg-[#3872F0] hover:bg-[#941822]"
             }`}
             type="submit"
             disabled={loading}

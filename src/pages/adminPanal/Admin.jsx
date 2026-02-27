@@ -209,8 +209,9 @@ const handleDelete = async (record) => {
       <div className="flex items-center justify-between mb-5">
         <PageHeading title="Admin Panel" />
         <button
+        style={{color:'white'}}
           onClick={() => setOpenAddModal(true)}
-          className="bg-[#E63946] w-[150px] text-white py-2 rounded"
+          className="bg-[#3872F0] w-[150px]  py-2 rounded"
         >
           Add Admin
         </button>

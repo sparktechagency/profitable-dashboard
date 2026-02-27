@@ -147,6 +147,7 @@ export default function ListingTable({ businessRole = "", status = "" }) {
     businessType: listing?.businessType || "N/A",
     ownerShipType: listing?.ownerShipType || "N/A",
     askingPrice: listing?.askingPrice || "N/A",
+    buyerViewCount: listing?.user?.buyerViewCount || 0,
     countryName: listing?.countryName || "N/A",
     state: listing?.state || "N/A",
     city: listing?.city || "N/A",
@@ -204,6 +205,11 @@ export default function ListingTable({ businessRole = "", status = "" }) {
       title: "Views",
       dataIndex: "views",
       key: "views",
+    },
+    {
+      title: "Contact View",
+      dataIndex: "buyerViewCount",
+      key: "buyerViewCount",
     },
     {
       title: "Price",
@@ -300,200 +306,135 @@ export default function ListingTable({ businessRole = "", status = "" }) {
         scroll={{ x: "max-content" }}
       />
       <Modal
-        open={isModalOpen}
-        centered
-        onCancel={() => {
-          setIsModalOpen(false);
-        }}
-        footer={null}
-        width={1000}
-        styles={{ body: { maxHeight: "70vh", overflowY: "auto" } }}
-      
-      >
-        <div className="container mx-auto p-5 bg-white">
-          {/* Image Gallery Section */}
-          <div className="mb-5">
-            {/* Main Image */}
-            <div className="mb-4">
-              <img
-                src={
-                  selectedListing?.business_image
-                    ? `${getImageBaseUrl()}/business-image/${
-                        selectedListing.business_image
-                      }`
-                    : selectedListing?.image
-                    ? `${getImageBaseUrl()}/business-image/${
-                        selectedListing.image
-                      }`
-                    : "https://avatar.iran.liara.run/public/21"
-                }
-                alt={selectedListing?.title || "Business Listing"}
-                className="w-full h-96 object-cover rounded-lg shadow-lg"
-              />
-            </div>
+  open={isModalOpen}
+  centered
+  onCancel={() => setIsModalOpen(false)}
+  footer={null}
+  width={1000}
+  className="p-0"
+  bodyStyle={{ padding: 0, borderRadius: "12px", overflow: "hidden" }}
+>
+  <div className="bg-gradient-to-r from-indigo-50 via-white to-indigo-50 rounded-lg shadow-xl overflow-hidden">
+    {/* Hero Section */}
+    <div className="relative">
+      <img
+        src={
+          selectedListing?.business_image
+            ? `${getImageBaseUrl()}/business-image/${selectedListing.business_image}`
+            : selectedListing?.image
+            ? `${getImageBaseUrl()}/business-image/${selectedListing.image}`
+            : "https://avatar.iran.liara.run/public/21"
+        }
+        alt={selectedListing?.title || "Business Listing"}
+        className="w-full h-96 object-cover"
+      />
+      <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/60 to-transparent p-6">
+        <h1 className="text-3xl font-bold text-white">
+          {selectedListing?.title || "Business Listing"}
+        </h1>
+        <p className="mt-1 text-lg font-semibold text-white">
+          Price: ${selectedListing?.price || 0} USD
+        </p>
+      </div>
+    </div>
+
+    {/* Body Section */}
+    <div className="p-2 space-y-6">
+      {/* Business Details Card */}
+      <div className="bg-white shadow-md rounded-lg p-5 space-y-4 border-l-4 border-indigo-500">
+        <h2 className="text-xl font-semibold text-gray-800">Business Details</h2>
+        <div className="grid grid-cols-2 gap-4 text-gray-700">
+          <div className="flex justify-between items-center">
+            <span className="font-medium">Role:</span>
+            <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm">
+              {selectedListing?.businessRole || "N/A"}
+            </span>
           </div>
-
-          {/* Business Information */}
-          <div className="space-y-5">
-            {/* Title and Price */}
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {selectedListing?.title || "Business Listing"}
-              </h1>
-              <div className="flex items-center gap-2 text-2xl font-semibold text-gray-800">
-                <span>Price: ${selectedListing?.price || 0} USD</span>
-              </div>
-            </div>
-
-            {/* Business Details Section */}
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Business Details
-              </h2>
-
-              <div className="space-y-4">
-                {/* Business Role */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium text-gray-700">
-                      Business Role
-                    </span>
-                  </div>
-                  <span className="inline-block bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                    {selectedListing?.businessRole || "N/A"}
-                  </span>
-                </div>
-
-                {/* Category */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium text-gray-700">Category</span>
-                  </div>
-                  <span className="text-gray-600">
-                    {selectedListing?.category || "N/A"}
-                  </span>
-                </div>
-
-                {/* Status */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium text-gray-700">Status</span>
-                  </div>
-                  <span
-                    className={`inline-block text-sm font-medium px-3 py-1 rounded-full ${
-                      selectedListing?.isApproved === true
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {selectedListing?.isApproved === true
-                      ? "Approved"
-                      : "Pending"}
-                  </span>
-                </div>
-
-                {/* User Information */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium text-gray-700">Listed By</span>
-                  </div>
-                  <span className="text-gray-600">
-                    {selectedListing?.user?.name || "N/A"}
-                  </span>
-                </div>
-
-                {/* Location */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    {/* <FaMapMarkerAlt className="text-gray-600" /> */}
-                    <span className="font-medium text-gray-700">Location</span>
-                  </div>
-                  <span className="text-gray-600">
-                    {selectedListing?.country || "N/A"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Business Description */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Business Description
-              </h3>
-              <div className="space-y-3 text-gray-700">
-                <p>
-                  {toPlainText(selectedListing?.description) ||
-                    "No description available for this business listing."}
-                </p>
-              </div>
-            </div>
-
-            {/* Additional Information */}
-            {selectedListing?.additionalInfo && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Additional Information
-                </h3>
-                <div className="space-y-3 text-gray-700">
-                  <p>{selectedListing.additionalInfo}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Contact Information */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Contact Information
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-700">Email:</span>
-                  <span className="font-semibold">
-                    {selectedListing?.user?.email || "N/A"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-700">Posted Date:</span>
-                  <span className="text-gray-600">
-                    {selectedListing?.createdAt
-                      ? new Date(selectedListing.createdAt).toLocaleDateString()
-                      : "N/A"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="w-full pt-5 border-t border-gray-200 flex gap-2">
-              {/* Approve button - active only when not approved */}
-              <button
-                onClick={() => handleApproveClick("approve")}
-                disabled={isUpdating || selectedListing?.isApproved === true}
-                className={`w-1/2 px-3 py-2 border !text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed
-                  ${"bg-blue-500 border-blue-500 hover:bg-blue-600 text-white"}`}
-                title="Approve Listing"
-              >
-                {isUpdating && activeAction === "approve"
-                  ? "Processing..."
-                  : "Mark as Approve"}
-              </button>
-
-              {/* Reject button - active only when currently approved */}
-              <button
-                onClick={() => handleApproveClick("reject")}
-                disabled={isUpdating || selectedListing?.isApproved !== true}
-                className={`w-1/2 px-3 py-2 border !text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed
-                  ${"bg-red-500 border-red-500 hover:bg-red-600 text-white"}`}
-                title="Reject Listing"
-              >
-                {isUpdating && activeAction === "reject"
-                  ? "Processing..."
-                  : "Mark as Rejected"}
-              </button>
-            </div>
+          <div className="flex justify-between items-center">
+            <span className="font-medium">Category:</span>
+            <span>{selectedListing?.category || "N/A"}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="font-medium">Status:</span>
+            <span
+              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                selectedListing?.isApproved
+                  ? "bg-green-100 text-green-800"
+                  : "bg-yellow-100 text-yellow-800"
+              }`}
+            >
+              {selectedListing?.isApproved ? "Approved" : "Pending"}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="font-medium">Views:</span>
+            <span>{selectedListing?.buyerViewCount || "N/A"}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="font-medium">Listed By:</span>
+            <span>{selectedListing?.user?.name || "N/A"}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="font-medium">Location:</span>
+            <span>{selectedListing?.country || "N/A"}</span>
           </div>
         </div>
-      </Modal>
+      </div>
+
+      {/* Description & Additional Info */}
+      <div className="bg-white shadow-md rounded-lg p-5 space-y-3 border-l-4 border-pink-500">
+        <h3 className="text-lg font-semibold text-gray-800">Description</h3>
+        <p className="text-gray-700">
+          {toPlainText(selectedListing?.description) ||
+            "No description available for this business listing."}
+        </p>
+        {selectedListing?.additionalInfo && (
+          <>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Additional Information
+            </h3>
+            <p className="text-gray-700">{selectedListing.additionalInfo}</p>
+          </>
+        )}
+      </div>
+
+      {/* Contact Info */}
+      <div className="bg-white shadow-md rounded-lg p-5 space-y-3 border-l-4 border-green-500">
+        <h3 className="text-lg font-semibold text-gray-800">Contact Information</h3>
+        <div className="flex justify-between text-gray-700">
+          <span>Email:</span>
+          <span className="font-semibold">{selectedListing?.user?.email || "N/A"}</span>
+        </div>
+        <div className="flex justify-between text-gray-700">
+          <span>Posted Date:</span>
+          <span>
+            {selectedListing?.createdAt
+              ? new Date(selectedListing.createdAt).toLocaleDateString()
+              : "N/A"}
+          </span>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-4">
+        <button
+          onClick={() => handleApproveClick("approve")}
+          disabled={isUpdating || selectedListing?.isApproved}
+          className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition"
+        >
+          {isUpdating && activeAction === "approve" ? "Processing..." : "Mark as Approve"}
+        </button>
+        <button
+          onClick={() => handleApproveClick("reject")}
+          disabled={isUpdating || !selectedListing?.isApproved}
+          className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-md shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition"
+        >
+          {isUpdating && activeAction === "reject" ? "Processing..." : "Mark as Rejected"}
+        </button>
+      </div>
+    </div>
+  </div>
+</Modal>
     </ConfigProvider>
   );
 }
