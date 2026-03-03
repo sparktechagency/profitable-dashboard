@@ -8,6 +8,7 @@ import AddFaqModal from "../../Components/faq/AddFaqModal";
 import EditFaqModal from "../../Components/faq/EditFaqModal";
 import DeleteFaqButton from "../../Components/faq/DeleteFaqButton";
 import { useGetAllFaqQuery, useDeleteFaqMutation } from "../../redux/api/faqApi";
+import { useGetUserProfileQuery } from "../../redux/api/profileApi";
 
 const FAQ = () => {
   const [isAccordionOpen, setIsAccordionOpen] = useState(null);
@@ -16,7 +17,8 @@ const FAQ = () => {
   const [activeTab, setActiveTab] = useState("Buyer");
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
-
+  const { data: userProfileData } = useGetUserProfileQuery();
+const currentUser = userProfileData?.data;
   const { data: faqData } = useGetAllFaqQuery({ role: activeTab });
   const [deleteFaq] = useDeleteFaqMutation();
 
@@ -33,6 +35,19 @@ const FAQ = () => {
   const handleClick = (index) => {
     setIsAccordionOpen((prevIndex) => (prevIndex === index ? null : index));
   };
+const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
+
+const addedFaq =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("ADD_FAQ");
+
+const editedFaq =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("EDIT_FAQ");
+
+  const deletedFaq =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("DELETE_FAQ");
 
   const FAQAccordion = ({ faqs }) => (
     <div className="space-y-4">
@@ -48,16 +63,16 @@ const FAQ = () => {
             </div>
             <div className="flex items-center gap-4">
               <div className="bg-[#0091FF] rounded  px-1.5 py-1">
-                <button
+                {editedFaq && (<button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleOpenEditModal(faq);
                   }}
                 >
                   <CiEdit className="text-xl text-white font-bold" />
-                </button>
+                </button>)}
               </div>
-              <DeleteFaqButton faq={faq} />
+              {deletedFaq && (<DeleteFaqButton faq={faq} />)}
               <FaChevronDown
                 className={`transition-transform duration-300 ${
                   isAccordionOpen === index ? "rotate-180" : ""
@@ -89,12 +104,12 @@ const FAQ = () => {
     <>
       <div className="flex items-start justify-between mb-5">
         <PageHeading title="FAQ Management" />
-        <button
+        {addedFaq && (<button
           onClick={() => setIsAddModalVisible(true)}
           className="py-2 px-4 rounded-lg bg-[#0091FF] !text-white"
         >
           Add FAQ for {activeTab}
-        </button>
+        </button>)}
       </div>
 
       <div className="mb-5 border border-[#0091FF]">

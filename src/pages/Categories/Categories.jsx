@@ -11,6 +11,7 @@ import UpdateCategoryModal from "../../Components/categories/UpdateCategoryModal
 import DeleteCategoryModal from "../../Components/categories/DeleteCategoryModal";
 import { useState } from "react";
 import Loader from "../../Components/Loaders/Loader";
+import { useGetUserProfileQuery } from "../../redux/api/profileApi";
 
 export default function Categories() {
   const navigate = useNavigate();
@@ -22,7 +23,8 @@ export default function Categories() {
   const [page, setPage] = useState(1);
   const [form] = Form.useForm();
   const [updateForm] = Form.useForm();
-
+  const { data: userProfileData } = useGetUserProfileQuery();
+const currentUser = userProfileData?.data;
   const { data: categoriesResponse, isLoading } = useGetAllCategoryQuery({
     page,
   });
@@ -49,6 +51,19 @@ export default function Categories() {
     });
     setUpdateModalOpen(true);
   };
+const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
+
+const addedCategory =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("ADD_CATEGORY");
+
+const editedCategory =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("EDIT_CATEGORY");
+
+  const deletedCategory =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("DELETE_CATEGORY");
 
   const columns = [
     {
@@ -108,14 +123,14 @@ export default function Categories() {
       align: "center",
       render: (_, record) => (
         <Space size="small">
-          <button
+          {editedCategory && (<button
             onClick={() => handleOpenUpdateModal(record)}
             className="border border-green-500 rounded-lg p-1 bg-green-100 text-green-600"
             title="Edit Listing"
           >
             <FiEdit className="w-8 h-8 text-green-600" />
-          </button>
-          <button
+          </button>)}
+          {deletedCategory && (<button
             onClick={() => {
               setCategory(record); // Set the category state for deletion
               setDeleteModalOpen(true); // Open the confirmation modal
@@ -123,7 +138,7 @@ export default function Categories() {
             className="bg-[#FEE2E2] border border-red-500 rounded-lg p-1 text-red-600"
           >
             <RiDeleteBin6Line className="w-8 h-8 text-xl text-[#EF4444] font-bold leading-none cursor-pointer" />
-          </button>
+          </button>)}
         </Space>
       ),
     },
@@ -138,14 +153,14 @@ export default function Categories() {
       <div className="flex justify-between items-center mb-5">
         <PageHeading title="Categories Management" />
         <div className="text-white">
-          <Button
+          {addedCategory && (<Button
             type="primary"
             size="large"
             className="bg-[#0091FF] border-[#0091FF] hover:bg-[#0077CC] hover:border-[#0077CC]"
             onClick={() => setAddModalOpen(true)}
           >
             + Add New Category
-          </Button>
+          </Button>)}
         </div>
       </div>
       <ConfigProvider

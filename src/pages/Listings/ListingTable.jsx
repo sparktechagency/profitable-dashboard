@@ -14,6 +14,8 @@ import Loader from "../../Components/Loaders/Loader";
 import { getImageBaseUrl } from "../../config/envConfig";
 import Swal from "sweetalert2";
 import img from "../../assets/icons/user.png";
+import { useGetUserProfileQuery } from "../../redux/api/profileApi";
+import EditMeta from "./EditMeta";
 
 export default function ListingTable({ businessRole = "", status = "" }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,7 +48,8 @@ export default function ListingTable({ businessRole = "", status = "" }) {
   // Update listing mutation
   const [updateListing, { isLoading: isUpdating }] = useUpdateListingMutation();
   const [deleteListing, { isLoading: isDeleting }] = useDeleteListingMutation();
-
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [selectedMeta, setSelectedMeta] = useState(null);
   const showModal = (record) => {
     setSelectedListing(record);
     setIsModalOpen(true);
@@ -126,7 +129,8 @@ export default function ListingTable({ businessRole = "", status = "" }) {
     setActiveAction(action); // 'approve' or 'reject'
     await handleApprove();
   };
-
+  const { data: userProfileData } = useGetUserProfileQuery();
+  const currentUser = userProfileData?.data;
   const dataSource = listingsData?.data?.map((listing, index) => ({
     key: listing._id || index,
     no: index + 1 + (page - 1) * 10,
@@ -156,7 +160,10 @@ export default function ListingTable({ businessRole = "", status = "" }) {
     isApproved: listing?.isApproved || "N/A",
     ...listing,
   }));
-
+  const handleEditClick = (user) => {
+    setSelectedMeta(user);
+    setOpenEditModal(true);
+  };
   const columns = [
     {
       title: "No",
@@ -169,7 +176,11 @@ export default function ListingTable({ businessRole = "", status = "" }) {
       render: (_, record) => (
         <div className="flex items-center gap-2">
           <img
-            src={record?.userImg ? `${getImageBaseUrl()}/profile-image/${record?.userImg}`: img }
+            src={
+              record?.userImg
+                ? `${getImageBaseUrl()}/profile-image/${record?.userImg}`
+                : img
+            }
             className="w-10 h-10 object-cover rounded-full"
             alt="User Avatar"
           />
@@ -231,43 +242,77 @@ export default function ListingTable({ businessRole = "", status = "" }) {
     {
       title: "Action",
       key: "action",
-      render: (_, record) => (
-        <div className="flex gap-2">
-          <button
-            onClick={() => showModal(record)}
-            className="border border-[#0091ff] rounded-lg p-1 bg-[#cce9ff] text-[#0091ff]"
-            title="View Details"
-          >
-            <FaRegEye className="w-8 h-8 text-[#0091ff]" />
-          </button>
-          <button
-            onClick={() =>
-              navigate("/edit-listing-management", {
-                state: { listing: record },
-              })
-            }
-            className="border border-green-500 rounded-lg p-1 bg-green-100 text-green-600"
-            title="Edit Listing"
-          >
-            <FiEdit className="w-8 h-8 text-green-600" />
-          </button>
-          <button
-            onClick={() => handleDelete(record)}
-            disabled={isDeleting}
-            className="border border-red-500 rounded-lg p-1 bg-red-100 text-red-600"
-            title="Delete Listing"
-          >
-            <FiTrash2
-              className={`w-8 h-8 ${
-                isDeleting ? "opacity-50" : "text-red-600"
-              }`}
-            />
-          </button>
-        </div>
-      ),
+      render: (_, record) => {
+        const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
+
+        const canBlock =
+          isSuperAdmin || currentUser?.permissions?.includes("EDIT_LISTING");
+
+        const canDelete =
+          isSuperAdmin || currentUser?.permissions?.includes("DELETE_LISTING");
+
+
+           const canMeta =
+          isSuperAdmin || currentUser?.permissions?.includes("ADD_METADATA");
+        return (
+          <div className="flex gap-2">
+                        {canMeta && (<button
+              onClick={() => handleEditClick(record)}
+              style={{ color: "white" }}
+              className="bg-[#0091ff] cursor-pointer rounded px-2 py-1"
+            >
+              Edit Meta
+            </button> )}
+            {/* BLOCK BUTTON */}
+            {canBlock && (
+              <button
+                onClick={() =>
+                  navigate("/edit-listing-management", {
+                    state: { listing: record },
+                  })
+                }
+                className="border border-green-500 rounded-lg p-1 bg-green-100 text-green-600"
+                title="Edit Listing"
+              >
+                <FiEdit className="w-8 h-8 text-green-600" />
+              </button>
+            )}
+
+            {/* VIEW BUTTON (Always Visible) */}
+            <button
+              onClick={() => showModal(record)}
+              className="border border-[#0091ff] rounded-lg p-1 bg-[#cce9ff] text-[#0091ff]"
+              title="View Details"
+            >
+              <FaRegEye className="w-8 h-8 text-[#0091ff]" />
+            </button>
+            {/* DELETE BUTTON */}
+            {canDelete && (
+              <button
+                onClick={() => handleDelete(record)}
+                disabled={isDeleting}
+                className="border border-red-500 rounded-lg p-1 bg-red-100 text-red-600"
+                title="Delete Listing"
+              >
+                <FiTrash2
+                  className={`w-8 h-8 ${
+                    isDeleting ? "opacity-50" : "text-red-600"
+                  }`}
+                />
+              </button>
+            )}
+          </div>
+        );
+      },
     },
   ];
+  const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
 
+  const canApprove =
+    isSuperAdmin || currentUser?.permissions?.includes("APPROVED_LISTING");
+
+  const canReject =
+    isSuperAdmin || currentUser?.permissions?.includes("REJECTED_LISTING");
   if (isLoading) {
     return <Loader />;
   }
@@ -306,135 +351,162 @@ export default function ListingTable({ businessRole = "", status = "" }) {
         scroll={{ x: "max-content" }}
       />
       <Modal
-  open={isModalOpen}
-  centered
-  onCancel={() => setIsModalOpen(false)}
-  footer={null}
-  width={1000}
-  className="p-0"
-  bodyStyle={{ padding: 0, borderRadius: "12px", overflow: "hidden" }}
->
-  <div className="bg-gradient-to-r from-indigo-50 via-white to-indigo-50 rounded-lg shadow-xl overflow-hidden">
-    {/* Hero Section */}
-    <div className="relative">
-      <img
-        src={
-          selectedListing?.business_image
-            ? `${getImageBaseUrl()}/business-image/${selectedListing.business_image}`
-            : selectedListing?.image
-            ? `${getImageBaseUrl()}/business-image/${selectedListing.image}`
-            : "https://avatar.iran.liara.run/public/21"
-        }
-        alt={selectedListing?.title || "Business Listing"}
-        className="w-full h-96 object-cover"
+        open={isModalOpen}
+        centered
+        onCancel={() => setIsModalOpen(false)}
+        footer={null}
+        width={1000}
+        className="p-0"
+        bodyStyle={{ padding: 0, borderRadius: "12px", overflow: "hidden" }}
+      >
+        <div className="bg-gradient-to-r from-indigo-50 via-white to-indigo-50 rounded-lg shadow-xl overflow-hidden">
+          {/* Hero Section */}
+          <div className="relative">
+            <img
+              src={
+                selectedListing?.business_image
+                  ? `${getImageBaseUrl()}/business-image/${selectedListing.business_image}`
+                  : selectedListing?.image
+                    ? `${getImageBaseUrl()}/business-image/${selectedListing.image}`
+                    : "https://avatar.iran.liara.run/public/21"
+              }
+              alt={selectedListing?.title || "Business Listing"}
+              className="w-full h-96 object-cover"
+            />
+            <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/60 to-transparent p-6">
+              <h1 className="text-3xl font-bold text-white">
+                {selectedListing?.title || "Business Listing"}
+              </h1>
+              <p className="mt-1 text-lg font-semibold text-white">
+                Price: ${selectedListing?.price || 0} USD
+              </p>
+            </div>
+          </div>
+
+          {/* Body Section */}
+          <div className="p-2 space-y-6">
+            {/* Business Details Card */}
+            <div className="bg-white shadow-md rounded-lg p-5 space-y-4 border-l-4 border-indigo-500">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Business Details
+              </h2>
+              <div className="grid grid-cols-2 gap-4 text-gray-700">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Role:</span>
+                  <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm">
+                    {selectedListing?.businessRole || "N/A"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Category:</span>
+                  <span>{selectedListing?.category || "N/A"}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Status:</span>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedListing?.isApproved
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {selectedListing?.isApproved ? "Approved" : "Pending"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Views:</span>
+                  <span>{selectedListing?.buyerViewCount || "N/A"}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Listed By:</span>
+                  <span>{selectedListing?.user?.name || "N/A"}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Location:</span>
+                  <span>{selectedListing?.country || "N/A"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Description & Additional Info */}
+            <div className="bg-white shadow-md rounded-lg p-5 space-y-3 border-l-4 border-pink-500">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Description
+              </h3>
+              <p className="text-gray-700">
+                {toPlainText(selectedListing?.description) ||
+                  "No description available for this business listing."}
+              </p>
+              {selectedListing?.additionalInfo && (
+                <>
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Additional Information
+                  </h3>
+                  <p className="text-gray-700">
+                    {selectedListing.additionalInfo}
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* Contact Info */}
+            <div className="bg-white shadow-md rounded-lg p-5 space-y-3 border-l-4 border-green-500">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Contact Information
+              </h3>
+              <div className="flex justify-between text-gray-700">
+                <span>Email:</span>
+                <span className="font-semibold">
+                  {selectedListing?.user?.email || "N/A"}
+                </span>
+              </div>
+              <div className="flex justify-between text-gray-700">
+                <span>Posted Date:</span>
+                <span>
+                  {selectedListing?.createdAt
+                    ? new Date(selectedListing.createdAt).toLocaleDateString()
+                    : "N/A"}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4">
+              {/* APPROVE BUTTON */}
+              {canApprove && (
+                <button
+                  onClick={() => handleApproveClick("approve")}
+                  disabled={isUpdating || selectedListing?.isApproved}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  {isUpdating && activeAction === "approve"
+                    ? "Processing..."
+                    : "Mark as Approve"}
+                </button>
+              )}
+
+              {/* REJECT BUTTON */}
+              {canReject && (
+                <button
+                  onClick={() => handleApproveClick("reject")}
+                  disabled={isUpdating || !selectedListing?.isApproved}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-md shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  {isUpdating && activeAction === "reject"
+                    ? "Processing..."
+                    : "Mark as Rejected"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      <EditMeta
+        openEditModal={openEditModal}
+        setOpenEditModal={setOpenEditModal}
+        selectedMeta={selectedMeta}
       />
-      <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/60 to-transparent p-6">
-        <h1 className="text-3xl font-bold text-white">
-          {selectedListing?.title || "Business Listing"}
-        </h1>
-        <p className="mt-1 text-lg font-semibold text-white">
-          Price: ${selectedListing?.price || 0} USD
-        </p>
-      </div>
-    </div>
-
-    {/* Body Section */}
-    <div className="p-2 space-y-6">
-      {/* Business Details Card */}
-      <div className="bg-white shadow-md rounded-lg p-5 space-y-4 border-l-4 border-indigo-500">
-        <h2 className="text-xl font-semibold text-gray-800">Business Details</h2>
-        <div className="grid grid-cols-2 gap-4 text-gray-700">
-          <div className="flex justify-between items-center">
-            <span className="font-medium">Role:</span>
-            <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm">
-              {selectedListing?.businessRole || "N/A"}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="font-medium">Category:</span>
-            <span>{selectedListing?.category || "N/A"}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="font-medium">Status:</span>
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${
-                selectedListing?.isApproved
-                  ? "bg-green-100 text-green-800"
-                  : "bg-yellow-100 text-yellow-800"
-              }`}
-            >
-              {selectedListing?.isApproved ? "Approved" : "Pending"}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="font-medium">Views:</span>
-            <span>{selectedListing?.buyerViewCount || "N/A"}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="font-medium">Listed By:</span>
-            <span>{selectedListing?.user?.name || "N/A"}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="font-medium">Location:</span>
-            <span>{selectedListing?.country || "N/A"}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Description & Additional Info */}
-      <div className="bg-white shadow-md rounded-lg p-5 space-y-3 border-l-4 border-pink-500">
-        <h3 className="text-lg font-semibold text-gray-800">Description</h3>
-        <p className="text-gray-700">
-          {toPlainText(selectedListing?.description) ||
-            "No description available for this business listing."}
-        </p>
-        {selectedListing?.additionalInfo && (
-          <>
-            <h3 className="text-lg font-semibold text-gray-800">
-              Additional Information
-            </h3>
-            <p className="text-gray-700">{selectedListing.additionalInfo}</p>
-          </>
-        )}
-      </div>
-
-      {/* Contact Info */}
-      <div className="bg-white shadow-md rounded-lg p-5 space-y-3 border-l-4 border-green-500">
-        <h3 className="text-lg font-semibold text-gray-800">Contact Information</h3>
-        <div className="flex justify-between text-gray-700">
-          <span>Email:</span>
-          <span className="font-semibold">{selectedListing?.user?.email || "N/A"}</span>
-        </div>
-        <div className="flex justify-between text-gray-700">
-          <span>Posted Date:</span>
-          <span>
-            {selectedListing?.createdAt
-              ? new Date(selectedListing.createdAt).toLocaleDateString()
-              : "N/A"}
-          </span>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-4">
-        <button
-          onClick={() => handleApproveClick("approve")}
-          disabled={isUpdating || selectedListing?.isApproved}
-          className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition"
-        >
-          {isUpdating && activeAction === "approve" ? "Processing..." : "Mark as Approve"}
-        </button>
-        <button
-          onClick={() => handleApproveClick("reject")}
-          disabled={isUpdating || !selectedListing?.isApproved}
-          className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-md shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition"
-        >
-          {isUpdating && activeAction === "reject" ? "Processing..." : "Mark as Rejected"}
-        </button>
-      </div>
-    </div>
-  </div>
-</Modal>
     </ConfigProvider>
   );
 }

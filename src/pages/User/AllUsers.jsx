@@ -15,6 +15,7 @@ import {
 import Loader from "../../Components/Loaders/Loader";
 import { useDebounced } from "../../Utils/hook";
 import { getImageBaseUrl } from "../../config/envConfig";
+import { useGetUserProfileQuery } from "../../redux/api/profileApi";
 
 export default function AllUsers({ search }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,14 +37,15 @@ export default function AllUsers({ search }) {
     searchText: debouncedSearch,
   });
   console.log("usersData", usersData);
-
+  const { data: userProfileData } = useGetUserProfileQuery();
+  const currentUser = userProfileData?.data;
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   const users = usersData?.data;
   const metaPage = usersData?.meta?.page || page || 1;
   const metaLimit = usersData?.meta?.limit || 10;
   const metaTotal = usersData?.meta?.total || users?.length || 0;
-  console.log("All users: ",users);
+  console.log("All users: ", users);
   const showModal = (user) => {
     setSelectedUser(user);
     setIsModalOpen(true);
@@ -82,7 +84,11 @@ export default function AllUsers({ search }) {
       render: (_, record, index) => (
         <div className="flex items-center gap-3">
           <img
-            src={ record?.image ? `${getImageBaseUrl()}/profile-image/${record?.image}` : img }
+            src={
+              record?.image
+                ? `${getImageBaseUrl()}/profile-image/${record?.image}`
+                : img
+            }
             className="w-10 h-10 object-cover rounded-full"
             alt="User Avatar"
           />
@@ -110,44 +116,62 @@ export default function AllUsers({ search }) {
     {
       title: "Subscription",
       key: "subscription",
-      render: (_, record) =>
-        record?.subscriptionPlanType || "No Subscription",
+      render: (_, record) => record?.subscriptionPlanType || "No Subscription",
     },
     {
       title: "Action",
       key: "action",
-      render: (_, record) => (
-        <div className="flex gap-2">
-          <button
-            onClick={() => showModal(record)}
-            className={`border rounded-lg p-1 ${
-              record?.isBlocked === true
-                ? "border-red-500 text-red-500 bg-red-100"
-                : "border-green-500 text-green-500 bg-green-100"
-            }`}
-          >
-            <MdBlockFlipped
-              className={`w-8 h-8 ${
-                record?.isBlocked === true ? "text-red-500" : "text-green-500"
-              }`}
-            />
-          </button>
-          <button
-            onClick={() => showModal2(record)}
-            className="border border-[#0091ff] rounded-lg p-1 bg-[#cce9ff] text-[#0091ff]"
-          >
-            <FaRegEye className="w-8 h-8 text-[#0091ff]" />
-          </button>
-          <button
-            onClick={() => showDeleteModal(record)}
-            className="border border-red-500 rounded-lg p-1 bg-red-100 text-red-600"
-            aria-label="Delete user"
-            title="Delete user"
-          >
-            <AiOutlineDelete className="w-8 h-8 text-red-600" />
-          </button>
-        </div>
-      ),
+      render: (_, record) => {
+        const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
+
+        const canBlock =
+          isSuperAdmin || currentUser?.permissions?.includes("BLOCK_USER");
+
+        const canDelete =
+          isSuperAdmin || currentUser?.permissions?.includes("DELETE_USER");
+
+        return (
+          <div className="flex gap-2">
+            {/* BLOCK BUTTON */}
+            {canBlock && (
+              <button
+                onClick={() => showModal(record)}
+                className={`border rounded-lg p-1 ${
+                  record?.isBlocked
+                    ? "border-red-500 text-red-500 bg-red-100"
+                    : "border-green-500 text-green-500 bg-green-100"
+                }`}
+              >
+                <MdBlockFlipped
+                  className={`w-8 h-8 ${
+                    record?.isBlocked ? "text-red-500" : "text-green-500"
+                  }`}
+                />
+              </button>
+            )}
+
+            {/* VIEW BUTTON (Always Visible) */}
+            <button
+              onClick={() => showModal2(record)}
+              className="border border-[#0091ff] rounded-lg p-1 bg-[#cce9ff] text-[#0091ff]"
+            >
+              <FaRegEye className="w-8 h-8 text-[#0091ff]" />
+            </button>
+
+            {/* DELETE BUTTON */}
+            {canDelete && (
+              <button
+                onClick={() => showDeleteModal(record)}
+                className="border border-red-500 rounded-lg p-1 bg-red-100 text-red-600"
+                aria-label="Delete user"
+                title="Delete user"
+              >
+                <AiOutlineDelete className="w-8 h-8 text-red-600" />
+              </button>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
@@ -241,7 +265,11 @@ export default function AllUsers({ search }) {
               <img
                 // src={imageUrl(selectedUser?.img)}
                 // src={img}
-                src={ selectedUser?.image ? `${getImageBaseUrl()}/profile-image/${selectedUser?.image}` : img }
+                src={
+                  selectedUser?.image
+                    ? `${getImageBaseUrl()}/profile-image/${selectedUser?.image}`
+                    : img
+                }
                 alt="Profile avatar"
                 className="w-full h-full object-cover"
               />

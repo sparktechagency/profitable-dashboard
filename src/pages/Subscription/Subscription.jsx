@@ -3,6 +3,7 @@ import { Modal, Button, Form, Input, Select } from "antd";
 import { CheckIcon, PlusIcon, XMarkIcon, PencilIcon } from "./icons.jsx";
 import toast from "react-hot-toast";
 import { useGetSubscriptionPlansQuery, useUpdateSubscriptionPlanMutation } from "../../redux/api/subscriptionApi";
+import { useGetUserProfileQuery } from "../../redux/api/profileApi.js";
 
 export default function Subscription({ role }) {
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -87,7 +88,8 @@ export default function Subscription({ role }) {
   // Modals state
   const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
   const [isFeatureModalOpen, setIsFeatureModalOpen] = useState(false);
-
+const { data: userProfileData } = useGetUserProfileQuery();
+const currentUser = userProfileData?.data;
   // Form states
   const [newPrices, setNewPrices] = useState([""]); // for non-Broker
   const [newPriceRows, setNewPriceRows] = useState([{ duration: "", price: "" }]); // for Broker
@@ -184,7 +186,15 @@ export default function Subscription({ role }) {
       console.error(e);
     }
   };
+const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
 
+const editPrice =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("EDIT_PRICE");
+
+const editFeature =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("EDIT_FEATURE");
   // Open feature management modal for a specific plan
   const handleOpenFeatureModal = (planKey) => {
     setSelectedPlan(planKey);
@@ -259,12 +269,14 @@ export default function Subscription({ role }) {
                           {plans[planKey].displayName === '1 Months' ? '1 Month' : plans[planKey].displayName}
                         </h2>
                       </div>
+                      {editPrice && (
                       <button
                         onClick={() => handleOpenPriceModal(planKey)}
                         className="bg-[#0091FF] cursor-pointer text-sm !text-white px-4 py-2 rounded-md flex items-center self-start sm:self-auto shrink-0"
                       >
                         <PencilIcon className="h-4 w-4" />
                       </button>
+                      )}
                     </div>
                     {role !== "Broker" && (
                       <div className="mb-6">
@@ -290,13 +302,14 @@ export default function Subscription({ role }) {
                 <div className="p-5 flex-1">
                   <div className="flex justify-between items-center mb-5">
                     <h3 className="text-2xl font-bold">Features</h3>
+                    {editFeature && (
                     <button
                       onClick={() => handleOpenFeatureModal(planKey)}
                       className="border border-[#022C22] text-[#022C22] cursor-pointer hover:bg-[#022C22] hover:!text-white px-4 py-2 rounded-md flex items-center"
                     >
                       <PencilIcon className="mr-2 h-4 w-4" />
                       Manage Features
-                    </button>
+                    </button>)}
                   </div>
                   <ul className="space-y-3 mt-4">
                     {plans[planKey].features.map((feature) => (

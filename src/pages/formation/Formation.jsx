@@ -9,6 +9,7 @@ import { FiEdit, FiEye } from "react-icons/fi";
 import AddFormationModal from "../../Components/formation/AddFormationModal";
 import UpdateFormationModal from "../../Components/formation/UpdateFormationModal";
 import DeleteFormationButton from "../../Components/formation/DeleteFormationButton";
+import { useGetUserProfileQuery } from "../../redux/api/profileApi";
 
 export default function Formation() {
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -18,6 +19,8 @@ export default function Formation() {
     { page },
     { refetchOnMountOrArgChange: true }
   );
+  const { data: userProfileData } = useGetUserProfileQuery();
+const currentUser = userProfileData?.data;
   const [form] = Form.useForm();
   const [updateForm] = Form.useForm();
   const [selectedFormation, setSelectedFormation] = useState(null);
@@ -45,18 +48,31 @@ export default function Formation() {
   if (isLoading) {
     return <Loader />;
   }
+const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
 
+const addBlog =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("ADD_BLOG");
+
+const editBlog =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("EDIT_BLOG");
+
+  const deleteBlog =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("DELETE_BLOG");
   return (
     <>
       <div className="flex justify-between items-center mb-5">
         <PageHeading title="Blog Management" />
         <div className="text-white">
+          {addBlog && (
           <button
             onClick={() => setAddModalOpen(true)}
             className="bg-[#0091FF] px-6 py-3 rounded cursor-pointer"
           >
             + Add New Blog
-          </button>
+          </button>)}
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5">
@@ -91,12 +107,12 @@ export default function Formation() {
               </div>
               {/* Action Buttons */}
               <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-auto">
-                <button
+                {editBlog && (<button
                   onClick={() => handleOpenUpdateModal(formation)}
                   className="p-2 text-green-600 hover:text-green-800"
                 >
                   <FiEdit size={24} className="text-[#0091FF]" />
-                </button>
+                </button>)}
 
                 <div className="h-6 w-px bg-gray-200"></div>
 
@@ -113,7 +129,7 @@ export default function Formation() {
 
                 <div className="h-6 w-px bg-gray-200"></div>
 
-                <DeleteFormationButton formation={formation} />
+                {deleteBlog && (<DeleteFormationButton formation={formation} />)}
               </div>
             </div>
           ))

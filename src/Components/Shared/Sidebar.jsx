@@ -102,49 +102,46 @@ const Sidebar = ({ collapsed, isMobile, onClose }) => {
       path: "/faq-management",
       label: "FAQ",
       icon: <TbMessageQuestion size={24} />,
-      hideForAdmin: true,
+     permission: "FAQ",
     },
     {
       path: "/privacy-policy",
       label: "Privacy Policy",
       icon: <GoChecklist size={24} />,
-      hideForAdmin: true,
+ permission: "PRIVACY_POLICY",
     },
     {
       path: "/terms-condition",
       label: "Terms & Condition",
       icon: <CiCircleQuestion size={24} />,
-      hideForAdmin: true,
+      permission: "TERMS_CONDITIONS",
     },
     {
       path: "/refund-policy",
       label: "Refund Policy",
       icon: <CiCircleQuestion size={24} />,
-      hideForAdmin: true,
+     permission: "REFUND_POLICY",
     },
   ];
 
-  // ✅ FILTER LOGIC
+
   const filteredSidebar = SidebarLink.filter((item) => {
     if (!user) return false;
 
-    // 👑 SUPER_ADMIN → সব দেখাবে
     if (user.role === "SUPER_ADMIN") return true;
 
-    // 🧑 ADMIN
+
     if (user.role === "ADMIN") {
-      // hide special pages
+
       if (item.hideForAdmin) return false;
 
-      // roleOnly route hide
+ 
       if (item.roleOnly) return false;
 
-      // permission check
       if (item.permission) {
         return user.permissions?.includes(item.permission);
       }
 
-      // default show (dashboard, profile)
       return true;
     }
 

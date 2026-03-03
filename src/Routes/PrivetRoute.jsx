@@ -14,11 +14,11 @@ const routePermissionMap = {
   "/formation": "BLOG",
   "/categories": "CATEGORY",
 
-  // ❌ ADMIN cannot access these
-  "/faq-management": "SUPER_ADMIN_ONLY",
-  "/privacy-policy": "SUPER_ADMIN_ONLY",
-  "/terms-condition": "SUPER_ADMIN_ONLY",
-  "/refund-policy": "SUPER_ADMIN_ONLY",
+
+  "/faq-management": "FAQ",
+  "/privacy-policy": "PRIVACY_POLICY",
+  "/terms-condition": "TERMS_CONDITIONS",
+  "/refund-policy": "REFUND_POLICY",
 };
 const PrivateRoute = ({ children }) => {
   const token = useSelector((state) => state.auth?.token);

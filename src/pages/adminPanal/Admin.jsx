@@ -1,9 +1,10 @@
 // Admin.jsx
-import { ConfigProvider, Popconfirm, Table, Tag, message } from "antd";
+import { ConfigProvider, Modal, Descriptions, Divider,  Popconfirm, Table, Tag, message } from "antd";
 import React, { useState, useMemo } from "react";
 import PageHeading from "../../Components/Shared/PageHeading";
 import AddAdmin from "./AddAdmin";
 import EditAdmin from "./EditAdmin";
+import { MdVisibility } from "react-icons/md";
 import {
   MdBlockFlipped,
   MdOutlineCheckCircle,
@@ -15,9 +16,37 @@ import {
   useDeleteAdminMutation,
   useGetAllAdminQuery,
 } from "../../redux/api/adminPanalApi";
-
+const permissionStructure = {
+  USER: ["BLOCK_USER", "DELETE_USER"],
+  LISTING: [
+    "APPROVED_LISTING",
+    "REJECTED_LISTING",
+    "DELETE_LISTING",
+    "EDIT_LISTING",
+    "ADD_METADATA",
+  ],
+  EARNING: [
+    "TOTAL_EARNING",
+    "EARNING_GROWTH_CHART",
+    "TRANSACTION_HISTORY",
+  ],
+  CATEGORY: ["ADD_CATEGORY", "EDIT_CATEGORY", "DELETE_CATEGORY"],
+  BLOG: ["ADD_BLOG", "EDIT_BLOG", "DELETE_BLOG"],
+  COUPON: ["ADD_COUPON", "EDIT_COUPON", "DELETE_COUPON"],
+  FAQ: ["ADD_FAQ", "EDIT_FAQ", "DELETE_FAQ"],
+  SUBSCRIPTION: ["EDIT_PRICE", "EDIT_FEATURE", "SUBSCRIBER_LIST"],
+  LEGAL: [
+    "NDA",
+    "PRIVACY_POLICY",
+    "TERMS_CONDITIONS",
+    "REFUND_POLICY",
+  ],
+};
 const Admin = () => {
   const { data: adminData, isLoading } = useGetAllAdminQuery();
+  console.log(adminData)
+  const [openViewModal, setOpenViewModal] = useState(false);
+const [viewUser, setViewUser] = useState(null);
   const [openAddModal, setOpenAddModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -106,21 +135,7 @@ const handleDelete = async (record) => {
       ),
     },
 
-    {
-      title: "Access",
-      key: "access",
-      width: 350,
-      render: (_, record) => (
-        <div className="flex flex-wrap gap-1">
-          {record.access.map((acc) => (
-            <Tag key={acc} color="cyan">
-              {acc}
-            </Tag>
-          ))}
-        </div>
-      ),
-    },
-
+   
     {
       title: "Status",
       key: "status",
@@ -138,69 +153,70 @@ const handleDelete = async (record) => {
       key: "actions",
       width: 120,
       align: "center",
-      render: (_, record) => {
-        const isSuperAdmin = record.role === "SUPER_ADMIN";
+     render: (_, record) => {
+  const isSuperAdmin = record.role === "SUPER_ADMIN";
 
-        return (
-          <div className="flex gap-2 justify-center">
-            {/* Block Toggle */}
-            <div
-              className={`w-[36px] h-[36px] flex justify-center items-center text-white rounded 
-              ${
-                isSuperAdmin
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : record.status === "active"
-                  ? "bg-[#E63946] cursor-pointer"
-                  : "bg-[#2a9d8f] cursor-pointer"
-              }`}
-              onClick={() => !isSuperAdmin && toggleBlock(record)}
-              title={
-                isSuperAdmin
-                  ? "Super Admin cannot be blocked"
-                  : record.status === "active"
-                  ? "Block Admin"
-                  : "Unblock Admin"
-              }
-            >
-              {record.status === "active" ? (
-                <MdBlockFlipped />
-              ) : (
-                <MdOutlineCheckCircle />
-              )}
-            </div>
+  return (
+    <div className="flex gap-2 justify-center">
 
-            {/* Edit */}
-            <div
-              className="w-[36px] h-[36px] flex justify-center items-center text-white rounded bg-[#1D3557] cursor-pointer"
-              onClick={() => handleEditClick(record)}
-            >
-              <MdEdit />
-            </div>
+      {/* 👁 View Button */}
+      <div
+        className="w-[36px] h-[36px] flex justify-center items-center text-white rounded bg-[#457B9D] cursor-pointer"
+        onClick={() => {
+          setViewUser(record);
+          setOpenViewModal(true);
+        }}
+        title="View Details"
+      >
+        <MdVisibility />
+      </div>
 
-            {/* Delete (optional future API) */}
-           {record.role !== "SUPER_ADMIN" ? (
-  <Popconfirm
-    title="Delete Admin"
-    description="Are you sure you want to delete this admin?"
-    onConfirm={() => handleDelete(record)}
-    okText="Yes"
-    cancelText="No"
-  >
-    <div className="w-[36px] h-[36px] flex justify-center items-center text-white rounded bg-[#E63946] cursor-pointer">
-      <MdDelete />
-    </div>
-  </Popconfirm>
-) : (
-  <div
-    className="w-[36px] h-[36px] flex justify-center items-center text-white rounded bg-gray-400 cursor-not-allowed"
-    title="Super Admin cannot be deleted"
-  >
-    <MdDelete />
-  </div>
-)}
+      {/* Block Button */}
+      <div
+        className={`w-[36px] h-[36px] flex justify-center items-center text-white rounded 
+        ${
+          isSuperAdmin
+            ? "bg-gray-400 cursor-not-allowed"
+            : record.status === "active"
+            ? "bg-[#E63946]"
+            : "bg-[#2a9d8f]"
+        }`}
+        onClick={() => !isSuperAdmin && toggleBlock(record)}
+      >
+        {record.status === "active" ? (
+          <MdBlockFlipped />
+        ) : (
+          <MdOutlineCheckCircle />
+        )}
+      </div>
+
+      {/* Edit */}
+      <div
+        className="w-[36px] h-[36px] flex justify-center items-center text-white rounded bg-[#1D3557] cursor-pointer"
+        onClick={() => handleEditClick(record)}
+      >
+        <MdEdit />
+      </div>
+
+      {/* Delete */}
+      {record.role !== "SUPER_ADMIN" ? (
+        <Popconfirm
+          title="Delete Admin"
+          description="Are you sure?"
+          onConfirm={() => handleDelete(record)}
+        >
+          <div className="w-[36px] h-[36px] flex justify-center items-center text-white rounded bg-[#E63946] cursor-pointer">
+            <MdDelete />
           </div>
-        );
-      },
+        </Popconfirm>
+      ) : (
+        <div className="w-[36px] h-[36px] flex justify-center items-center text-white rounded bg-gray-400 cursor-not-allowed">
+          <MdDelete />
+        </div>
+      )}
+    </div>
+  );
+}
     },
   ];
 
@@ -238,6 +254,65 @@ const handleDelete = async (record) => {
           pagination={false}
         />
       </ConfigProvider>
+
+
+      <Modal
+  open={openViewModal}
+  onCancel={() => setOpenViewModal(false)}
+  footer={null}
+  width={700}
+  title="Admin Details"
+>
+  {viewUser && (
+    <>
+      <Descriptions bordered column={1}>
+        <Descriptions.Item label="Name">
+          {viewUser.name}
+        </Descriptions.Item>
+        <Descriptions.Item label="Email">
+          {viewUser.email}
+        </Descriptions.Item>
+        <Descriptions.Item label="Role">
+          <Tag color="blue">{viewUser.role}</Tag>
+        </Descriptions.Item>
+        <Descriptions.Item label="Status">
+          <Tag color={viewUser.status === "active" ? "green" : "red"}>
+            {viewUser.status}
+          </Tag>
+        </Descriptions.Item>
+      </Descriptions>
+
+      <Divider orientation="left">Permissions</Divider>
+
+      {viewUser.role === "SUPER_ADMIN" ? (
+        <Tag color="purple">All Access</Tag>
+      ) : (
+        Object.entries(permissionStructure).map(([parent, children]) => {
+          const hasParent = viewUser.access.includes(parent);
+          if (!hasParent) return null;
+
+          return (
+            <div key={parent} className="mb-4">
+              <h4 className="font-semibold text-[#3872F0] mb-2">
+                {parent.replaceAll("_", " ")}
+              </h4>
+
+              <div className="flex flex-wrap gap-2">
+                {children
+                  .filter((child) => viewUser.access.includes(child))
+                  .map((child) => (
+                    <Tag key={child} color="cyan">
+                      {child.replaceAll("_", " ")}
+                    </Tag>
+                  ))}
+              </div>
+            </div>
+          );
+        })
+      )}
+    </>
+  )}
+</Modal>
 
       <AddAdmin
         openAddModal={openAddModal}

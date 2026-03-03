@@ -16,13 +16,15 @@ import {
   useUpdate_couponMutation,
   useDelete_couponMutation,
 } from "../../redux/api/couponApi";
+import { useGetUserProfileQuery } from "../../redux/api/profileApi";
 
 function Coupon() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [form] = Form.useForm();
   const [editingRecord, setEditingRecord] = useState(null);
-
+  const { data: userProfileData } = useGetUserProfileQuery();
+const currentUser = userProfileData?.data;
   const { data, isLoading } = useGet_all_couponQuery({ page });
   const [addCoupon, { isLoading: isAddingCoupon }] = useAdd_couponMutation();
   const [updateCoupon, { isLoading: isUpdatingCoupon }] =
@@ -91,6 +93,19 @@ function Coupon() {
       );
     }
   };
+const isSuperAdmin = currentUser?.role === "SUPER_ADMIN";
+
+const addedCoupon =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("ADD_COUPON");
+
+const editedCoupon =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("EDIT_COUPON");
+
+  const deletedCoupon =
+  isSuperAdmin ||
+  currentUser?.permissions?.includes("DELETE_COUPON");
 
   const handleEdit = (record) => {
     setIsModalOpen(true);
@@ -158,7 +173,7 @@ function Coupon() {
       key: "action",
       render: (_, record) => (
         <div className="flex gap-2 justify-center item-center items-center">
-          <button
+          {editedCoupon && (<button
             onClick={(e) => {
               e.stopPropagation();
               handleEdit(record);
@@ -166,9 +181,9 @@ function Coupon() {
             className="bg-[#0091FF] rounded-lg  p-2"
           >
             <CiEdit className="text-xl text-white font-bold leading-none cursor-pointer" />
-          </button>
+          </button>)}
 
-          <DeleteCouponButton record={record} />
+          {deletedCoupon && (<DeleteCouponButton record={record} />)}
         </div>
       ),
     },
@@ -186,6 +201,7 @@ function Coupon() {
     <div className="p-5">
       <div className="flex items-center justify-between mb-5">
         <PageHeading title="Coupon Management" />
+        {addedCoupon && (
         <button
           onClick={() => {
             setIsModalOpen(true);
@@ -194,7 +210,7 @@ function Coupon() {
           className="bg-[#0091FF] !text-white px-5 py-3 rounded"
         >
           + Add New Coupon
-        </button>
+        </button>)}
       </div>
 
       <ConfigProvider

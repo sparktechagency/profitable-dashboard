@@ -21,6 +21,20 @@ const listingApi = baseApi.injectEndpoints({
       },
       invalidatesTags: ["listings"],
     }),
+
+
+ addListingMeta: builder.mutation({
+      query: ({ data, id }) => {
+        return {
+          url: `dashboard/add-meta-tag?businessId=${id}`,
+          method: "POST",
+          body: data,
+        };
+      },
+      invalidatesTags: ["listings"],
+    }),
+
+
     updateListingDetails: builder.mutation({
       query: ({ businessId, user, data }) => ({
         url: "business/update-business",
@@ -32,7 +46,7 @@ const listingApi = baseApi.injectEndpoints({
     }),
     deleteListing: builder.mutation({
       query: ({ businessId }) => ({
-        url: "business/delete-business",
+        url: "dashboard/delete-business",
         method: "DELETE",
         params: { businessId },
       }),
@@ -46,6 +60,7 @@ export const {
   useUpdateListingMutation,
   useUpdateListingDetailsMutation,
   useDeleteListingMutation,
+  useAddListingMetaMutation
 } = listingApi;
 
 export default listingApi;

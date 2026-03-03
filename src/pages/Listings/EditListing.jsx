@@ -17,11 +17,10 @@ import { getImageBaseUrl } from "../../config/envConfig";
 import Swal from "sweetalert2";
 import JoditComponent from "../../Components/Shared/JoditComponent";
 
-
-import { Country, State, City }  from "country-state-city";
-console.log(Country.getAllCountries())
-console.log(State.getAllStates())
-console.log(City.getAllCities())
+import { Country, State, City } from "country-state-city";
+console.log(Country.getAllCountries());
+console.log(State.getAllStates());
+console.log(City.getAllCities());
 
 const extractFileName = (path) => {
   if (!path) return null;
@@ -102,8 +101,8 @@ const EditListing = () => {
   const rawCategories = Array.isArray(categoriesResp?.data)
     ? categoriesResp.data
     : Array.isArray(categoriesResp)
-    ? categoriesResp
-    : [];
+      ? categoriesResp
+      : [];
 
   const categoryOptions = rawCategories.map((c, idx) => {
     const name =
@@ -113,7 +112,7 @@ const EditListing = () => {
   const watchedCategory = Form.useWatch("category", form);
   const selectedCategoryName = watchedCategory || listingData?.category;
   const selectedCategory = rawCategories.find(
-    (c) => (c?.categoryName || c?.name || c?.title) === selectedCategoryName
+    (c) => (c?.categoryName || c?.name || c?.title) === selectedCategoryName,
   );
   const subCategoryOptions = (
     Array.isArray(selectedCategory?.subCategories)
@@ -128,7 +127,11 @@ const EditListing = () => {
   // Ensure category and subCategory are set correctly when options load
   useEffect(() => {
     // If the category field is empty but we have one from listingData and options are ready, set it
-    if (!form.getFieldValue("category") && listingData?.category && categoryOptions.length) {
+    if (
+      !form.getFieldValue("category") &&
+      listingData?.category &&
+      categoryOptions.length
+    ) {
       form.setFieldsValue({ category: listingData.category });
     }
   }, [categoryOptions, listingData, form]);
@@ -138,8 +141,12 @@ const EditListing = () => {
     const fromListing = listingData?.subCategory;
     // When options are available, try to restore listing subCategory if not set
     if (subCategoryOptions.length) {
-      const hasCurrent = subCategoryOptions.some((opt) => opt.value === current);
-      const hasListing = fromListing && subCategoryOptions.some((opt) => opt.value === fromListing);
+      const hasCurrent = subCategoryOptions.some(
+        (opt) => opt.value === current,
+      );
+      const hasListing =
+        fromListing &&
+        subCategoryOptions.some((opt) => opt.value === fromListing);
       if (!hasCurrent && hasListing) {
         form.setFieldsValue({ subCategory: fromListing });
         return;
@@ -170,7 +177,7 @@ const EditListing = () => {
     setPreviewImage(file.url || file.preview);
     setPreviewOpen(true);
     setPreviewTitle(
-      file.name || file.url.substring(file.url.lastIndexOf("/") + 1)
+      file.name || file.url.substring(file.url.lastIndexOf("/") + 1),
     );
   };
 
@@ -255,9 +262,7 @@ const EditListing = () => {
     if (listingData) {
       form.setFieldsValue({
         title: listingData?.title || "",
-          metaTitle: listingData?.metaTitle || "",
-      metaDescription: listingData?.metaDescription || "",
-      metaKeywords: listingData?.metaKeywords || [],
+   
         category: listingData?.category || "",
         subCategory: listingData?.subCategory || "",
         businessType: listingData?.businessType || "",
@@ -301,12 +306,7 @@ const EditListing = () => {
         const formData = new FormData();
         formData.append("title", values.title);
         formData.append("category", values.category);
-         formData.append("metaTitle", values.metaTitle || "");
-      formData.append("metaDescription", values.metaDescription || "");
-      formData.append(
-        "metaKeywords",
-        JSON.stringify(values.metaKeywords || [])
-      );
+       
         formData.append("reason", values.reason);
         formData.append("subCategory", values.subCategory ?? "");
         formData.append("state", values.state ?? "");
@@ -333,9 +333,7 @@ const EditListing = () => {
         const updateData = {
           title: values.title,
           category: values.category,
-          metaTitle: values.metaTitle,
-          metaDescription: values.metaDescription,
-          metaKeywords: values.metaKeywords || [],
+         
           image: currentImages || values.image || "",
           reason: values.reason,
           subCategory: values.subCategory,
@@ -438,9 +436,7 @@ const EditListing = () => {
             >
               {fileList.length >= 1 ? null : uploadButton}
             </Upload>
-            <p className="text-sm text-gray-500 mt-2">
-              Upload one image.
-            </p>
+            <p className="text-sm text-gray-500 mt-2">Upload one image.</p>
           </div>
 
           {previewImage && (
@@ -455,39 +451,11 @@ const EditListing = () => {
               }}
             />
           )}
-<Form.Item
-          name="metaTitle"
-          label="Meta Title"
-          rules={[{ required: true, message: "Please enter meta title" }]}
-        >
-          <Input placeholder="Enter meta title" />
-        </Form.Item>
-
-        <Form.Item
-          name="metaDescription"
-          label="Meta Description"
-          rules={[{ required: true, message: "Please enter meta description" }]}
-        >
-          <Input.TextArea rows={3} placeholder="Enter meta description" />
-        </Form.Item>
-
-        <Form.Item
-          name="metaKeywords"
-          label="Meta Keywords"
-          rules={[
-            { required: true, message: "Please enter at least one keyword" },
-          ]}
-        >
-          <Select
-            mode="tags"
-            tokenSeparators={[","]}
-            placeholder="Type and press Enter to add keywords"
-          />
-        </Form.Item>
+          
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column */}
-            
+
             <div className="space-y-4">
               <Form.Item
                 label="Title"
@@ -587,19 +555,27 @@ const EditListing = () => {
                   showSearch
                   optionFilterProp="label"
                   onChange={handleCountryChange}
-                  options={(countries || []).map((c) => ({ label: c.name, value: c.name }))}
+                  options={(countries || []).map((c) => ({
+                    label: c.name,
+                    value: c.name,
+                  }))}
                 />
               </Form.Item>
 
               <Form.Item label="State" name="state">
                 <Select
                   size="large"
-                  placeholder={countryCode ? "Select state" : "Select country first"}
+                  placeholder={
+                    countryCode ? "Select state" : "Select country first"
+                  }
                   showSearch
                   optionFilterProp="label"
                   onChange={handleStateChange}
                   disabled={!countryCode}
-                  options={(states || []).map((s) => ({ label: s.name, value: s.name }))}
+                  options={(states || []).map((s) => ({
+                    label: s.name,
+                    value: s.name,
+                  }))}
                 />
               </Form.Item>
 
@@ -611,7 +587,10 @@ const EditListing = () => {
                   optionFilterProp="label"
                   onChange={handleCityChange}
                   disabled={!stateCode}
-                  options={(cities || []).map((c) => ({ label: c.name, value: c.name }))}
+                  options={(cities || []).map((c) => ({
+                    label: c.name,
+                    value: c.name,
+                  }))}
                 />
               </Form.Item>
 
