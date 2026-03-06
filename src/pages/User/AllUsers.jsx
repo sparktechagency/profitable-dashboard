@@ -116,7 +116,7 @@ export default function AllUsers({ search }) {
     {
       title: "Subscription",
       key: "subscription",
-      render: (_, record) => record?.subscriptionPlanType || "No Subscription",
+      render: (_, record) => record?.subscriptionPlanType === "1 Months" ? "1 Month" : record?.subscriptionPlanType || "No Subscription",
     },
    {
   title: "Start Date",
