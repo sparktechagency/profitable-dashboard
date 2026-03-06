@@ -251,6 +251,8 @@ export default function ListingTable({ businessRole = "", status = "" }) {
         const canDelete =
           isSuperAdmin || currentUser?.permissions?.includes("DELETE_LISTING");
 
+ const canView =
+          isSuperAdmin || currentUser?.permissions?.includes("VIEW_LISTING");
 
            const canMeta =
           isSuperAdmin || currentUser?.permissions?.includes("ADD_METADATA");
@@ -279,13 +281,15 @@ export default function ListingTable({ businessRole = "", status = "" }) {
             )}
 
             {/* VIEW BUTTON (Always Visible) */}
-            <button
-              onClick={() => showModal(record)}
-              className="border border-[#0091ff] rounded-lg p-1 bg-[#cce9ff] text-[#0091ff]"
-              title="View Details"
-            >
-              <FaRegEye className="w-8 h-8 text-[#0091ff]" />
-            </button>
+            {canView && (
+              <button
+                onClick={() => showModal(record)}
+                className="border border-[#0091ff] rounded-lg p-1 bg-[#cce9ff] text-[#0091ff]"
+                title="View Details"
+              >
+                <FaRegEye className="w-8 h-8 text-[#0091ff]" />
+              </button>
+             )}
             {/* DELETE BUTTON */}
             {canDelete && (
               <button

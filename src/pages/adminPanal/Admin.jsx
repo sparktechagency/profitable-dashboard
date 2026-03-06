@@ -17,13 +17,14 @@ import {
   useGetAllAdminQuery,
 } from "../../redux/api/adminPanalApi";
 const permissionStructure = {
-  USER: ["BLOCK_USER", "DELETE_USER"],
+  USER: ["BLOCK_USER", "DELETE_USER","VIEW_USER",],
   LISTING: [
     "APPROVED_LISTING",
     "REJECTED_LISTING",
     "DELETE_LISTING",
     "EDIT_LISTING",
     "ADD_METADATA",
+    "VIEW_LISTING"
   ],
   EARNING: [
     "TOTAL_EARNING",

@@ -118,6 +118,17 @@ export default function AllUsers({ search }) {
       key: "subscription",
       render: (_, record) => record?.subscriptionPlanType || "No Subscription",
     },
+   {
+  title: "Start Date",
+  key: "startDate",
+  render: (_, record) => {
+    const date = record?.subscriptionStartDate;
+    if (!date) return "00-00-0000";
+
+    const formattedDate = new Date(date).toLocaleDateString("en-GB");
+    return formattedDate; // 05/03/2026
+  },
+},
     {
       title: "Action",
       key: "action",
@@ -129,6 +140,8 @@ export default function AllUsers({ search }) {
 
         const canDelete =
           isSuperAdmin || currentUser?.permissions?.includes("DELETE_USER");
+          const canView =
+          isSuperAdmin || currentUser?.permissions?.includes("VIEW_USER");
 
         return (
           <div className="flex gap-2">
@@ -151,12 +164,14 @@ export default function AllUsers({ search }) {
             )}
 
             {/* VIEW BUTTON (Always Visible) */}
-            <button
-              onClick={() => showModal2(record)}
-              className="border border-[#0091ff] rounded-lg p-1 bg-[#cce9ff] text-[#0091ff]"
-            >
-              <FaRegEye className="w-8 h-8 text-[#0091ff]" />
-            </button>
+            {canView && (
+              <button
+                onClick={() => showModal2(record)}
+                className="border border-[#0091ff] rounded-lg p-1 bg-[#cce9ff] text-[#0091ff]"
+              >
+                <FaRegEye className="w-8 h-8 text-[#0091ff]" />
+              </button>
+            )}
 
             {/* DELETE BUTTON */}
             {canDelete && (
