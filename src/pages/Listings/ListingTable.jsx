@@ -151,7 +151,7 @@ export default function ListingTable({ businessRole = "", status = "" }) {
     businessType: listing?.businessType || "N/A",
     ownerShipType: listing?.ownerShipType || "N/A",
     askingPrice: listing?.askingPrice || "N/A",
-    buyerViewCount: listing?.user?.buyerViewCount || 0,
+    buyerViewCount: listing?.buyerViewCount || 0,
     countryName: listing?.countryName || "N/A",
     state: listing?.state || "N/A",
     city: listing?.city || "N/A",
@@ -235,7 +235,7 @@ export default function ListingTable({ businessRole = "", status = "" }) {
       key: "date",
     },
     {
-      title: "business location",
+      title: "location",
       dataIndex: "countryName",
       key: "countryName",
     },
