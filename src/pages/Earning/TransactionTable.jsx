@@ -1,12 +1,14 @@
-import { ConfigProvider, Table } from "antd";
+import { ConfigProvider, Input, Table } from "antd";
 import Loader from "../../Components/Loaders/Loader";
 import { useGetEarningQuery } from "../../redux/api/earningApi";
 import { useState } from "react";
 
 export default function TransactionTable() {
+  const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const currentYear = new Date().getFullYear();
   const { data: earningData, isLoading } = useGetEarningQuery({
+    searchText: searchTerm,
     year: currentYear,
     page,
   });
@@ -18,11 +20,11 @@ export default function TransactionTable() {
         .map((payment) => ({
           key: payment._id,
           _id: payment._id,
-          name: payment.user?.name || "No Name",
-          email: payment.user?.email || "No Email",
+          name: payment.user?.name || "N/A",
+          email: payment.user?.email || "N/A",
           date: new Date(payment.createdAt).toLocaleDateString(),
           amount: payment.amount,
-          TR_ID: payment?.payment_intent_id || "No TR ID",
+          TR_ID: payment?.payment_intent_id || "N/A",
           status: payment.status,
           pay_On: "Stripe",
         }))
@@ -101,6 +103,14 @@ export default function TransactionTable() {
           },
         }}
       >
+       <div className="flex justify-between">
+          <h1 className="text-2xl font-bold text-[#0091FF] mb-5 text-start">
+                  Last transactions history
+                </h1>
+        <div className="mb-4">
+          <Input onChange={(e) => setSearchTerm(e.target.value)} style={{width:'350px'}} placeholder="Search By Name" size="large" />
+        </div>
+       </div>
         <Table
           dataSource={dataSource}
           columns={columns}

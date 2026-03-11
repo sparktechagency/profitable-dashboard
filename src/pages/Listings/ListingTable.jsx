@@ -418,14 +418,23 @@ export default function ListingTable({ businessRole = "", status = "" }) {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="font-medium">Views:</span>
-                  <span>{selectedListing?.buyerViewCount || "N/A"}</span>
+                  <span className="font-medium">Contact Views:</span>
+                  <span>{selectedListing?.buyerViewCount || "0"}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Listed By:</span>
                   <span>{selectedListing?.user?.name || "N/A"}</span>
                 </div>
                 <div className="flex justify-between items-center">
+                  <span className="font-medium">Buyer Views:</span>
+                  <span>{selectedListing?.views || "0"}</span>
+                </div>
+                 <div className="flex justify-between items-center">
+                  <span className="font-medium">Total Interest:</span>
+                  <span>{selectedListing?.totalInterest || "0"}</span>
+                </div>
+
+                 <div className="flex justify-between items-center">
                   <span className="font-medium">Location:</span>
                   <span>{selectedListing?.country || "N/A"}</span>
                 </div>
