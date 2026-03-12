@@ -16,6 +16,8 @@ import {
   useDeleteAdminMutation,
   useGetAllAdminQuery,
 } from "../../redux/api/adminPanalApi";
+import img from "../../assets/icons/user.png";
+import { getImageBaseUrl } from "../../config/envConfig";
 const permissionStructure = {
   USER: ["BLOCK_USER", "DELETE_USER","VIEW_USER",],
   LISTING: [
@@ -65,9 +67,10 @@ const [deleteAdmin] = useDeleteAdminMutation();
       id: admin._id,
       name: admin.name,
       email: admin.email,
-      image:
-        admin.image ||
-        "https://i.pravatar.cc/100?img=" + (index + 1),
+    image:
+  admin.image && admin.image.trim() !== ""
+    ? `${getImageBaseUrl()}/profile-image/${admin.image}`
+    : img,
       role: admin.role,
       access:
         admin.role === "SUPER_ADMIN"
@@ -76,6 +79,7 @@ const [deleteAdmin] = useDeleteAdminMutation();
       status: admin.isBlocked ? "blocked" : "active",
     }));
   }, [adminData]);
+  console.log(adminData)
 
   // ✅ Block Toggle
   const toggleBlock = async (record) => {

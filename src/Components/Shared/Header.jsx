@@ -21,6 +21,7 @@ export default function Header({ onToggle }) {
   const { data: profileData } = useGetUserProfileQuery({
     _id: decodedToken?.id,
   });
+  console.log(profileData)
 
   const { data: notificationsData } = useGetAllNotificationQuery();
 
